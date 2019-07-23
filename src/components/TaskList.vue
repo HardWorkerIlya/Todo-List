@@ -11,10 +11,24 @@
       <div class="today"><span>{{ date.dayName }}</span></div>
     </header>
     <main class="todo-list">
+      <svg viewBox="0 0 0 0" style="position: absolute; z-index: -1; opacity: 0;">
+        <defs>
+          <path id="task__line" stroke="var(--text-unselected-color)" d="M22 12.3h168v0.1z"></path>
+          <path id="task__check" stroke="var(--text-unselected-color)" d="M12 13l2 2 5-5"></path>
+          <circle id="task__box" cx="15" cy="12.5" r="7"></circle>
+        </defs>
+      </svg>
+
       <ul class="tasks-container">
-        <li class="task-container" v-for="(index, task) in tasks" v-bind:class="{ checked: !task.state }" :key="index">
-          <p class="task">{{ task.name }}</p>
-          <input type="radio" v-on:click="checkTask" />
+        <li class="task" v-for="(task, index) in tasks" :class="{ checked: !task.state }" :key="index">
+          <div class="task__check-place" @click="checkTask($event, index)" />
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="task__icon">
+            <use xlink:href="#task__line" class="task__line"></use>
+            <use xlink:href="#task__box" class="task__box"></use>
+            <use xlink:href="#task__check" class="task__check"></use>
+            <use xlink:href="#task__circle" class="task__circle"></use>
+          </svg>
+          <div class="task__text">{{ task.name }}</div>
         </li>
       </ul>
     </main>
@@ -29,9 +43,18 @@ import moment from 'moment'
 
 export default {
   name: 'TaskList',
-  data() {
+  data () {
     return {
-      tasks: [],
+      tasks: [
+        {
+          name: '123',
+          state: true
+        },
+        {
+          name: '456',
+          state: false
+        }
+      ],
       task: '',
       date: {
         dayNum: '',
@@ -70,9 +93,10 @@ export default {
         this.tasks.unshift(objTask)
       }
     },
-    checkTask: function(e){
+    checkTask (e, index) {
       const taskElement = e.target.parentNode
       taskElement.classList.toggle('checked')
+      this.tasks[index].state = !this.tasks[index].state
     }
   },
   computed: {
@@ -80,7 +104,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
   .todo-container {
     height: calc(100vh - 40px);
     min-height: 300px;
@@ -91,92 +115,127 @@ export default {
     padding: 2em;
     width: 100%;
     box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.18);
-  }
-
-  ul {
-    list-style: none;
-  }
-
-  p {
-    margin: 0;
-  }
-
-  .todo-container {
     background-color: var(--todo-bkg);
-  }
 
-  header {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-  }
+    ul {
+      list-style: none;
+    }
 
-  header .date {
-    display: flex;
-    justify-content: space-between;
-    width: 22%;
-  }
+    p {
+      margin: 0;
+    }
 
-  header .date .day-number {
-    font-size: 2em;
-    font-weight: bold;
-    line-height: 1em;
-  }
+    .current-date {
+      align-items: center;
+      display: flex;
+      justify-content: space-between;
 
-  header .date .month-year-wrapper {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    font-size: .8em;
-  }
+      .date {
+        display: flex;
+        justify-content: space-between;
+        width: 22%;
 
-  header .date .month-year-wrapper .month {
-    font-weight: bold;
-  }
+        .day-number {
+          font-size: 2em;
+          font-weight: bold;
+          line-height: 1em;
+        }
 
-  header .today {
-    font-weight: 600;
-  }
+        .month-year-wrapper {
+          align-items: center;
+          display: flex;
+          flex-direction: column;
+          font-size: .8em;
 
-  /*TODO BODY*/
-  main.todo-list {
-    margin-top: 1em;
-  }
+          .month {
+            font-weight: bold;
+          }
+        }
+      }
 
-  main.todo-list .tasks-container {
-    overflow-y: auto;
-    max-height: 260px; /*Scroll uando muestra el scroll*/
-  }
+      .today {
+        font-weight: 600;
+      }
+    }
 
-  main.todo-list .tasks-container li.task-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: .7em;
-  }
+    .todo-list {
+      margin-top: 1em;
 
-  li.task-container.checked p {
-    color: var(--text-unselected-color);
-    text-decoration: line-through;
-    transition: all 500ms ease-in-out;
-  }
+      .tasks-container {
+        /*overflow-y: auto;*/
+        /*max-height: 260px; !*Scroll uando muestra el scroll*!*/
 
-  li.task-container.checked input {
-    border-color: var(--control-color);
-    transition: all 500ms ease-in-out;
-  }
+        .task {
+          position: relative;
+          padding: .7em;
 
-  input[type="radio"] {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+          .task__check-place {
+            position: absolute;
+            left: 8px;
+            top: 7px;
+            width: 27px;
+            height: 27px;
+            cursor: pointer;
+            z-index: 10;
+          }
 
-    border: 3px solid var(--text-unselected-color);
-    border-radius: 50%;
-    cursor: pointer;
-    width: 25px;
-    height: 25px;
-    outline: none;
+          .task__text {
+            transition: all .4s linear .4s;
+            padding-left: 36px;
+            line-height: 25px;
+          }
+
+          .task__icon {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: auto;
+            margin: auto;
+
+            fill: none;
+            stroke: #27FDC7;
+            stroke-width: 1;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+
+            .task__box {
+              stroke-width: 2;
+            }
+          }
+
+          .task__line,
+          .task__box,
+          .task__check {
+            transition: stroke-dashoffset .8s cubic-bezier(.9,.0,.5,1);
+          }
+
+          .task__box {
+            stroke-dasharray: 56.1053, 56.1053; stroke-dashoffset: 0;
+            transition-delay: 0.8 * 0.2;
+          }
+          .task__check {
+            stroke: #27FDC7;
+            stroke-dasharray: 9.8995, 9.8995; stroke-dashoffset: 9.8995;
+            transition-duration: 0.8 * 0.4;
+          }
+          .task__line {
+            stroke-dasharray: 168, 1684;
+            stroke-dashoffset: 168;
+          }
+
+          &.checked {
+            .task__text { transition-delay: 0s; color: var(--text-unselected-color); }
+            .task__icon {
+              .task__box { stroke-dashoffset: 56.1053; transition-delay: 0s; }
+              .task__line { stroke-dashoffset: -8; }
+              .task__check { stroke-dashoffset: 0; transition-delay: 0.8 * 0.6; }
+            }
+          }
+        }
+      }
+    }
   }
 
   button.add-task-btn {
