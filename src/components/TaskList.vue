@@ -171,8 +171,8 @@ export default {
 
           .task__check-place {
             position: absolute;
-            left: 8px;
-            top: 7px;
+            left: 10px;
+            top: 10px;
             width: 27px;
             height: 27px;
             cursor: pointer;
