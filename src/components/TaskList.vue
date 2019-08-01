@@ -2,9 +2,9 @@
   <div class="todo-container">
     <header class="current-date">
       <div class="date">
-        <span class="day-number">{{ date.dayNum }}</span>
+        <span class="day-number">{{ date.day }}</span>
         <div class="month-year-wrapper">
-          <span class="month">{{ date.month }}</span>
+          <span class="month">{{ date.monthName }}</span>
           <span class="year">{{ date.year }}</span>
         </div>
       </div>
@@ -32,17 +32,21 @@
         </li>
       </ul>
     </main>
-<!--    <button class="add-task-btn" v-on:click="addTask">-->
-<!--      <span>+</span>-->
-<!--    </button>-->
+    <button v-show="!isVisible" class="todo__add-btn" @click="showModal">
+      <span>+</span>
+    </button>
   </div>
 </template>
 
 <script>
 import moment from 'moment'
+import modal from '@/mixins/modal'
+import { mapState, mapActions } from 'vuex'
+import { _sortBy, _cloneDeep } from '@/utils/lodash'
 
 export default {
   name: 'TaskList',
+  mixins: [modal],
   data () {
     return {
       tasks: [
@@ -56,34 +60,61 @@ export default {
         }
       ],
       task: '',
+      todayDate: '',
       date: {
-        dayNum: '',
-        month: '',
+        date: '',
         year: '',
+        month: '',
+        monthName: '',
+        day: '',
         dayName: ''
       }
     }
   },
-  mounted: function() {
+  computed: {
+    ...mapState('todos', [
+      'isLoading',
+      'taskList'
+    ]),
+    filteredTasks: vm => {
+      let res = _cloneDeep(vm.taskList)
+
+      return _sortBy(res, 'updated_at')
+    }
+  },
+  mounted () {
     this.getCurrentDay()
   },
+  watch: {
+    todayDate () {
+      this.getTasksByDate({ date: this.date })
+    }
+  },
   methods: {
+    ...mapActions('todos', [
+      'getTasksByDate'
+    ]),
     getCurrentDay: function() {
-      const today = new Date()
-      let dayName = moment(today).format('dddd')
+      const today = moment(new Date())
+      let date = today.format('YYYY-MM-DD')
+      let year = today.format('YYYY')
+      let month = today.format('MM')
+      let monthName = today.format('MMM')
+      let day = today.format('DD')
+      let dayName = today.format('dddd')
 
-      let [ monthDay, year ] = moment().format('ll').split(',')
-      let [ month, day ] = monthDay.split(' ')
-
-      month = month.toUpperCase()
+      monthName = monthName.toUpperCase()
       dayName = dayName.toUpperCase()
 
-      this.date.dayNum = day
-      this.date.month = month
+      this.date.day = day
+      this.date.monthName = monthName
       this.date.year = year
       this.date.dayName = dayName
+      this.date.month = ++month
+      this.date.date = date
+      this.todayDate = date
     },
-    addTask: function() {
+    addTask () {
       const inputTask = prompt('Add a new task')
       if(inputTask.trim()) {
         var objTask = {
@@ -98,8 +129,6 @@ export default {
       taskElement.classList.toggle('checked')
       this.tasks[index].state = !this.tasks[index].state
     }
-  },
-  computed: {
   }
 }
 </script>
@@ -112,10 +141,13 @@ export default {
     flex-direction: column;
     align-self: stretch;
     position: relative;
-    padding: 2em;
     width: 100%;
     box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.18);
     background-color: var(--todo-bkg);
+    
+    @media only screen and (max-width: 425px) {
+      height: 100vh;
+    }
 
     ul {
       list-style: none;
@@ -126,6 +158,7 @@ export default {
     }
 
     .current-date {
+      padding: 2em 2em 0;
       align-items: center;
       display: flex;
       justify-content: space-between;
@@ -159,7 +192,8 @@ export default {
     }
 
     .todo-list {
-      margin-top: 1em;
+      padding: 1em 2em 2em;
+      flex: 1;
 
       .tasks-container {
         /*overflow-y: auto;*/
@@ -236,31 +270,51 @@ export default {
         }
       }
     }
-  }
 
-  button.add-task-btn {
-    background-color: var(--control-color);
-    border: none;
-    border-radius: 50%;
-    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.18);
-    cursor: pointer;
-    height: 90px;
-    width: 90px;
-    position: absolute;
-    bottom: -45px;
-    left: calc(190px - 45px);
-    outline: none;
-    transition: 200ms ease-in-out;
-  }
+    .todo__add-btn {
+      background-color: var(--control-color);
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+      height: 60px;
+      width: 60px;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      outline: none;
+      transition: 200ms ease-in-out;
 
-  button.add-task-btn span {
-    font-size: 3em;
-    font-weight: bold;
-    color: #46BE8B;
-    font-family: none;
-  }
+      span {
+        font-size: 3em;
+        font-weight: bold;
+        color: #46BE8B;
+        font-family: none;
+      }
 
-  button.add-task-btn:active {
-    transform: scale(.9);
+      &:active {
+        transform: scale(.9);
+      }
+    }
+
+    .todo__input-container {
+      display: flex;
+      width: 100%;
+      height: 50px;
+      background-color: #fff;
+      box-shadow: 0px -10px 20px rgba(0, 0, 0, 0.18);
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
+      overflow: hidden;
+
+      .todo__input-field {
+        outline: none;
+        padding: 16px;
+        font-size: 16px;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+    }
   }
 </style>

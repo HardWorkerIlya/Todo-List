@@ -1,16 +1,19 @@
 <template>
   <div id="app">
     <task-list />
+    <input-field />
   </div>
 </template>
 
 <script>
-import TaskList from './components/TaskList.vue'
+import TaskList from '@/components/TaskList.vue'
+import InputField from '@/components/global/ModalItputField.vue'
 
 export default {
   name: 'app',
   components: {
-    TaskList
+    TaskList,
+    InputField
   }
 }
 </script>
@@ -43,7 +46,7 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    max-width: 380px;
+    max-width: 425px;
     width: 100%;
     min-height: 100vh;
   }
