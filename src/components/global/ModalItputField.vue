@@ -3,7 +3,7 @@
     <div v-show="isVisible" class="modal-wrapper" @click.self="hideModal">
       <transition name="input">
         <div v-show="isVisible" class="input-container">
-          <input class="input-field" ref="input" type="text">
+          <input v-model="task" @keyup.enter="setTask" class="input-field" ref="input" type="text">
         </div>
       </transition>
     </div>
@@ -12,12 +12,29 @@
 
 <script>
 import modal from '@/mixins/modal'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'ModalItputField',
   mixins: [modal],
   updated () {
     this.$refs.input.focus()
+  },
+  data () {
+    return {
+      task: ''
+    }
+  },
+  methods: {
+    ...mapActions('todos', [
+      'addTaskByDate'
+    ]),
+    setTask () {
+      if (this.task) {
+        this.addTaskByDate({task: this.task})
+        this.hideModal()
+      }
+    }
   }
 }
 </script>

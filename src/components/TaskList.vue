@@ -20,7 +20,7 @@
       </svg>
 
       <ul class="tasks-container">
-        <li class="task" v-for="(task, index) in tasks" :class="{ checked: !task.state }" :key="index">
+        <li class="task" v-for="(task, index) in filteredTasks" :class="{ checked: task.completed }" :key="index">
           <div class="task__check-place" @click="checkTask($event, index)" />
           <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 25" class="task__icon">
             <use xlink:href="#task__line" class="task__line"></use>
@@ -28,7 +28,7 @@
             <use xlink:href="#task__check" class="task__check"></use>
             <use xlink:href="#task__circle" class="task__circle"></use>
           </svg>
-          <div class="task__text">{{ task.name }}</div>
+          <div class="task__text">{{ task.task }}</div>
         </li>
       </ul>
     </main>
@@ -92,7 +92,8 @@ export default {
   },
   methods: {
     ...mapActions('todos', [
-      'getTasksByDate'
+      'getTasksByDate',
+      'updateTaskComplete'
     ]),
     getCurrentDay: function() {
       const today = moment(new Date())
@@ -114,20 +115,9 @@ export default {
       this.date.date = date
       this.todayDate = date
     },
-    addTask () {
-      const inputTask = prompt('Add a new task')
-      if(inputTask.trim()) {
-        var objTask = {
-          name: inputTask,
-          state: true
-        }
-        this.tasks.unshift(objTask)
-      }
-    },
     checkTask (e, index) {
-      const taskElement = e.target.parentNode
-      taskElement.classList.toggle('checked')
-      this.tasks[index].state = !this.tasks[index].state
+      this.updateTaskComplete(index)
+      // this.tasks[index].completed = !this.tasks[index].completed
     }
   }
 }
@@ -217,6 +207,9 @@ export default {
             transition: all .4s linear .4s;
             padding-left: 36px;
             line-height: 25px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
 
           .task__icon {
